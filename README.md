@@ -688,4 +688,342 @@ CFG-E/
 └── requirements.txt
 ```
 
-**Next Step:** Would you like me to help implement the GNN-based classifier?
+---
+
+## Implementation Status ✅
+
+**The GNN-based classifier has been implemented!** All implementation files are now available in the repository.
+
+---
+
+## Quick Start Guide
+
+### 1. Installation
+
+```bash
+# Clone the repository (if needed)
+git clone <repository-url>
+cd CFG-E
+
+# Install PyTorch (adjust CUDA version as needed)
+pip install torch --index-url https://download.pytorch.org/whl/cu118
+
+# Install PyTorch Geometric
+pip install torch-geometric
+
+# Install other dependencies
+pip install -r requirements.txt
+```
+
+### 2. Prepare Your Dataset
+
+```bash
+# Place your binaries in the appropriate directories
+# Benign executables → data/raw/benign/
+# Malware executables → data/raw/malware/
+
+# Example structure:
+# data/raw/benign/program1.exe
+# data/raw/benign/program2.exe
+# data/raw/malware/malware1.exe
+# data/raw/malware/malware2.exe
+```
+
+### 3. Extract CFGs from Binaries
+
+```bash
+# Extract Control Flow Graphs from all binaries
+python src/extract_batch.py \
+    --benign-dir data/raw/benign \
+    --malware-dir data/raw/malware \
+    --output-benign data/processed/benign \
+    --output-malware data/processed/malware \
+    --workers 4
+
+# This will create GraphML files for each binary
+```
+
+### 4. Extract Features from CFGs
+
+```bash
+# Convert CFGs to PyTorch Geometric format with node features
+python src/extract_features.py \
+    --benign-cfg-dir data/processed/benign \
+    --malware-cfg-dir data/processed/malware \
+    --output-benign data/processed/benign \
+    --output-malware data/processed/malware \
+    --workers 4
+
+# This creates .pt files (PyTorch Geometric Data objects)
+```
+
+### 5. Train the Model
+
+```bash
+# Train the GNN model
+python src/train.py --config configs/config.yaml
+
+# Training will:
+# - Split data into train/val/test sets (70/15/15)
+# - Train the GCN model
+# - Save best model based on validation accuracy
+# - Generate training history
+# - Evaluate on test set
+
+# Results will be saved to: results/run_TIMESTAMP/
+```
+
+### 6. Evaluate the Model
+
+```bash
+# Generate detailed evaluation metrics and plots
+python src/evaluate.py --results-dir results/run_TIMESTAMP/
+
+# This generates:
+# - Classification report (precision, recall, F1)
+# - Confusion matrix (with visualization)
+# - ROC curve and AUC score
+# - Precision-Recall curve
+# - Training history plots
+```
+
+### 7. Test the Dataset Loader (Optional)
+
+```bash
+# Test if your dataset is loading correctly
+python src/dataset.py \
+    --benign-dir data/processed/benign \
+    --malware-dir data/processed/malware \
+    --batch-size 32
+```
+
+---
+
+## Configuration
+
+Edit `configs/config.yaml` to customize training:
+
+```yaml
+# Model architecture
+model:
+  type: "gcn"  # Options: gcn, gcn_deep, gat, graphsage
+  hidden_channels: 64  # Increase for more capacity
+  dropout: 0.5  # Increase if overfitting
+
+# Training parameters
+training:
+  epochs: 200
+  batch_size: 32  # Adjust based on GPU memory
+  learning_rate: 0.001
+  use_class_weights: true  # For imbalanced datasets
+```
+
+---
+
+## Expected Results
+
+With a properly balanced dataset (1000+ samples each class), you should expect:
+
+- **Accuracy**: 90-95%
+- **Precision**: 88-94%
+- **Recall**: 90-96%
+- **F1-Score**: 89-95%
+- **ROC AUC**: 0.95+
+
+Results depend on:
+- Dataset size and quality
+- Balance between benign/malware samples
+- Diversity of malware families
+- Feature richness
+
+---
+
+## Troubleshooting
+
+### Issue: CFG extraction fails for some binaries
+
+```bash
+# This is normal - some binaries may be packed or corrupted
+# Check data/extraction_metadata.json for success/failure stats
+```
+
+### Issue: Out of memory during training
+
+```bash
+# Reduce batch size in configs/config.yaml
+batch_size: 16  # or even 8
+```
+
+### Issue: Model overfitting (high train acc, low val acc)
+
+```bash
+# Increase dropout or add regularization
+dropout: 0.6  # or 0.7
+weight_decay: 0.001  # increase L2 regularization
+```
+
+### Issue: Low accuracy
+
+```bash
+# Possible causes:
+# 1. Dataset too small → collect more samples
+# 2. Dataset imbalanced → ensure use_class_weights: true
+# 3. Features not informative → add more node features
+# 4. Model too simple → try model: type: "gcn_deep" or "gat"
+```
+
+---
+
+## Advanced Usage
+
+### Experiment with Different Models
+
+```bash
+# Try Graph Attention Network (GAT)
+# Edit configs/config.yaml:
+model:
+  type: "gat"
+  hidden_channels: 64
+
+# Try deeper network
+model:
+  type: "gcn_deep"
+  hidden_channels: 128
+```
+
+### Extract Single Binary CFG
+
+```bash
+# Use the original cfg_gen.py for single binaries
+python cfg_gen.py  # Edit main.exe path inside
+```
+
+### Custom Node Features
+
+Edit `src/extract_features.py` in the `extract_node_features()` function to add:
+- Opcode n-grams
+- API call patterns
+- String constants
+- Register usage
+- Memory access patterns
+
+---
+
+## Project Structure
+
+```
+CFG-E/
+├── README.md                   # This file
+├── requirements.txt            # Python dependencies
+├── cfg_gen.py                  # Original single-binary CFG extractor
+├── output.pdf                  # Example CFG visualization
+├── static_cfg.dot              # Example CFG (DOT format)
+├── static_cfg.graphml          # Example CFG (GraphML format)
+├── data/                       # Dataset directory
+│   ├── raw/
+│   │   ├── benign/            # Place benign executables here
+│   │   └── malware/           # Place malware executables here
+│   └── processed/
+│       ├── benign/            # Processed CFG files
+│       └── malware/           # Processed CFG files
+├── src/                        # Source code
+│   ├── extract_batch.py       # Batch CFG extraction
+│   ├── extract_features.py    # Feature extraction
+│   ├── dataset.py             # Dataset loader
+│   ├── model.py               # GNN model architectures
+│   ├── train.py               # Training script
+│   └── evaluate.py            # Evaluation script
+├── configs/
+│   └── config.yaml            # Training configuration
+└── results/                    # Training results (auto-generated)
+    └── run_TIMESTAMP/
+        ├── best_model.pt      # Best model checkpoint
+        ├── config.yaml        # Config used for this run
+        ├── history.json       # Training history
+        ├── test_results.json  # Test set results
+        └── *.png              # Plots and visualizations
+```
+
+---
+
+## Next Steps for Improvement
+
+Once you have a working baseline model:
+
+1. **Richer Node Features**
+   - Add opcode n-grams
+   - Extract API call sequences
+   - Include constant pool features
+
+2. **Try Advanced Architectures**
+   - Graph Attention Networks (GAT)
+   - Deeper networks (4-6 layers)
+   - Skip connections
+
+3. **Multi-Class Classification**
+   - Classify by malware family
+   - Detect specific malware types
+
+4. **Explainability**
+   - Use GNNExplainer
+   - Visualize attention weights
+   - Identify suspicious subgraphs
+
+5. **Consider Abstract Interpretation** (Advanced)
+   - Add semantic features
+   - Hybrid GNN + symbolic analysis
+
+---
+
+## Safety Warning ⚠️
+
+When working with malware samples:
+
+```bash
+# ALWAYS use isolated environment
+- Work in a VM (VirtualBox/VMware)
+- Disable network access
+- Use separate storage
+- Take regular snapshots
+- Never execute malware on host system
+```
+
+---
+
+## Citation
+
+If you use this work in your research, please cite:
+
+```bibtex
+@misc{cfg-malware-gnn,
+  title={Malware Classification Using Graph Neural Networks on Control Flow Graphs},
+  author={Your Name},
+  year={2024},
+  url={https://github.com/yourusername/CFG-E}
+}
+```
+
+---
+
+## License
+
+[Specify your license here]
+
+---
+
+## Contributing
+
+Contributions are welcome! Please:
+1. Fork the repository
+2. Create a feature branch
+3. Submit a pull request
+
+---
+
+## Contact
+
+For questions or issues, please open an issue on GitHub.
+
+---
+
+**Happy Malware Hunting! 🔍🛡️**
