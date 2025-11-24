@@ -1,0 +1,41 @@
+# Configuration for Malware Classification using GNN
+
+# Random seed for reproducibility
+seed: 42
+
+# Data configuration
+data:
+  benign_dir: "data/processed/benign"
+  malware_dir: "data/processed/malware"
+  train_ratio: 0.7
+  val_ratio: 0.15
+  test_ratio: 0.15
+
+# Model configuration
+model:
+  type: "gcn"  # Options: gcn, gcn_deep, gat, graphsage
+  num_features: 10  # Number of node features
+  hidden_channels: 64  # Hidden layer size
+  num_classes: 2  # Binary classification
+  dropout: 0.5
+  pooling: "mean"  # Options: mean, max
+
+# Training configuration
+training:
+  epochs: 200
+  batch_size: 32
+  learning_rate: 0.001
+  weight_decay: 0.0005  # L2 regularization
+  num_workers: 0  # Number of data loading workers (0 for single-threaded)
+  use_class_weights: true  # Use class weights for imbalanced data
+  early_stopping_patience: 15  # Stop if no improvement for N epochs
+
+# Output configuration
+output_dir: "results"
+
+# Notes:
+# - Adjust batch_size based on GPU memory (32 is a safe default)
+# - For small datasets, reduce hidden_channels to prevent overfitting
+# - Increase dropout (0.6-0.7) if overfitting occurs
+# - For imbalanced datasets, keep use_class_weights: true
+# - Try different model types: gat for attention, graphsage for large graphs
