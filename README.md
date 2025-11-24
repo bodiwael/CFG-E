@@ -3,7 +3,26 @@
 ## Overview
 This repository focuses on **binary classification of malware vs benign executables** using Control Flow Graph (CFG) analysis combined with Neural Network architectures.
 
-**Current Status**: CFG extraction implemented using `angr` (see `cfg_gen.py`)
+**Current Status**: Full GNN-based malware classification pipeline implemented!
+
+## 🚀 Quick Start: Google Colab Notebook
+
+**Want to run everything in one place?** Use our all-in-one Colab notebook:
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/bodiwael/CFG-E/blob/main/CFG_Malware_Classification_Colab.ipynb)
+
+The notebook includes:
+- ✅ Complete pipeline from binary files to trained model
+- ✅ All functions integrated in one file
+- ✅ Step-by-step execution with explanations
+- ✅ Automatic GPU detection
+- ✅ Interactive visualizations
+- ✅ Easy file upload from Google Drive or local machine
+- ✅ Download trained model and results
+
+**Perfect for**: Learning, experimentation, and quick prototyping!
+
+---
 
 ## Table of Contents
 1. [Approach Comparison](#approach-comparison)
@@ -698,6 +717,14 @@ CFG-E/
 
 ## Quick Start Guide
 
+### Option 1: Google Colab (Recommended for Beginners)
+
+**Easiest way to get started!** Open the [Colab notebook](https://colab.research.google.com/github/bodiwael/CFG-E/blob/main/CFG_Malware_Classification_Colab.ipynb) and run all cells. Everything is included in one file!
+
+### Option 2: Local Installation
+
+For advanced users who want to run on their own machine:
+
 ### 1. Installation
 
 ```bash
@@ -913,12 +940,13 @@ Edit `src/extract_features.py` in the `extract_node_features()` function to add:
 
 ```
 CFG-E/
-├── README.md                   # This file
-├── requirements.txt            # Python dependencies
-├── cfg_gen.py                  # Original single-binary CFG extractor
-├── output.pdf                  # Example CFG visualization
-├── static_cfg.dot              # Example CFG (DOT format)
-├── static_cfg.graphml          # Example CFG (GraphML format)
+├── README.md                              # This file
+├── CFG_Malware_Classification_Colab.ipynb # 🚀 All-in-one Colab notebook
+├── requirements.txt                       # Python dependencies
+├── cfg_gen.py                             # Original single-binary CFG extractor
+├── output.pdf                             # Example CFG visualization
+├── static_cfg.dot                         # Example CFG (DOT format)
+├── static_cfg.graphml                     # Example CFG (GraphML format)
 ├── data/                       # Dataset directory
 │   ├── raw/
 │   │   ├── benign/            # Place benign executables here
