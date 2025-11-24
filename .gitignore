@@ -47,7 +47,7 @@ logs/
 
 # Jupyter Notebook
 .ipynb_checkpoints
-*.ipynb
+# *.ipynb  # Commented out to allow main Colab notebook in repo
 
 # IDE
 .vscode/
